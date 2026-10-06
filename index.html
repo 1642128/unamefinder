@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MineSeek - Minecraft Username Engine & Wisp Utility</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            base: '#0f1117',
+                            card: '#181b24',
+                            border: '#262b38',
+                            hover: '#202532'
+                        },
+                        cyber: {
+                            emerald: '#10b981',
+                            crimson: '#ef4444',
+                            purple: '#8b5cf6',
+                            amber: '#f59e0b',
+                            cyan: '#06b6d4'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0f1117;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.07) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.07) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(15, 17, 23, 0.8) 0px, transparent 100%);
+            background-attachment: fixed;
+        }
+
+        .cyber-glass {
+            background: rgba(24, 27, 36, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .cyber-card {
+            background: rgba(24, 27, 36, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cyber-card:hover {
+            border-color: rgba(16, 185, 129, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.1);
+        }
+
+        .glow-available {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.5) !important;
+        }
+
+        .glow-taken {
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4) !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 17, 23, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #262b38;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500 selection:text-black">
+
+    <header class="sticky top-0 z-40 cyber-glass border-b border-slate-800/80 px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Branding -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-purple-600 p-0.5 shadow-lg shadow-emerald-500/20 flex items-center justify-center">
+                    <div class="w-full h-full bg-dark-base rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid font-mono text-lg text-emerald-400 font-extrabold">&gt;MC</i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-xl tracking-tight text-white flex items-center gap-2">
+                        MINE<span class="text-emerald-400">SEEK</span>
+                        <span class="text-[10px] uppercase font-mono px-2 py-0.5 bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 rounded-full">Pro v3.0</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Live Minecraft Name Generator & Pr0xy Tunnel Engine</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex items-center gap-1 bg-dark-base p-1.5 rounded-xl border border-slate-800 text-xs font-medium overflow-x-auto w-full md:w-auto justify-center">
+                <button onclick="switchTab('generator')" id="nav-btn-generator" class="px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 text-emerald-400 bg-dark-card border border-emerald-500/30">
+                    <i class="fa-solid fa-dice text-emerald-400"></i>
+                    <span>Generator</span>
+                </button>
+                <button onclick="switchTab('single')" id="nav-btn-single" class="px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-magnifying-glass text-cyan-400"></i>
+                    <span>Single Lookup</span>
+                </button>
+                <button onclick="switchTab('favorites')" id="nav-btn-favorites" class="px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-star text-amber-400"></i>
+                    <span>Favorites (<span id="fav-count-badge">0</span>)</span>
+                </button>
+                <button onclick="switchTab('pr0xy')" id="nav-btn-pr0xy" class="px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-network-wired text-purple-400"></i>
+                    <span>Wisp / Pr0xy</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 flex-grow w-full">
+        
+        <!-- ================= TAB 1: GENERATOR & BATCH CHECKER ================= -->
+        <div id="tab-generator" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Controls Sidebar -->
+            <aside class="lg:col-span-4 space-y-5">
+                <div class="cyber-glass p-5 rounded-2xl border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <h2 class="font-semibold text-white flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-sliders text-emerald-400"></i> Generator Rules
+                        </h2>
+                        <span class="text-[11px] text-slate-400">Live API Engine</span>
+                    </div>
+
+                    <!-- Custom Keywords Input -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-medium text-slate-300 flex items-center justify-between">
+                            <span>Custom Keywords</span>
+                            <span class="text-[10px] text-slate-500">Comma separated</span>
+                        </label>
+                        <input type="text" id="gen-keywords" value="blade, shadow, void, frost, craft, og, pixel" placeholder="e.g. shadow, frost, og, flex" 
+                            class="w-full bg-dark-base border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500 font-mono">
+                    </div>
+
+                    <!-- Pattern Selector -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-medium text-slate-300">Name Pattern</label>
+                        <select id="gen-pattern" onchange="togglePatternFields()" class="w-full bg-dark-base border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                            <option value="keyword-suffix">Keyword + Suffix</option>
+                            <option value="prefix-keyword">Prefix + Keyword</option>
+                            <option value="two-keyword">Two Keyword Combo</option>
+                            <option value="3-letter">3-Letter OG / Rare (CVC/VCV)</option>
+                            <option value="4-letter">4-Letter OG / Rare (CVCV)</option>
+                            <option value="custom-list">Raw Word List Only</option>
+                        </select>
+                    </div>
+
+                    <!-- Prefixes Input -->
+                    <div id="field-prefixes" class="space-y-1">
+                        <label class="text-xs font-medium text-slate-300">Prefixes</label>
+                        <input type="text" id="gen-prefixes" value="i, x, MC, Real, Itz, Sir, OGs" placeholder="i, x, MC, Real" 
+                            class="w-full bg-dark-base border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-emerald-500">
+                    </div>
+
+                    <!-- Suffixes Input -->
+                    <div id="field-suffixes" class="space-y-1">
+                        <label class="text-xs font-medium text-slate-300">Suffixes</label>
+                        <input type="text" id="gen-suffixes" value="OG, MC, Dev, Live, TV, HD, FX, God" placeholder="OG, MC, Dev, Live" 
+                            class="w-full bg-dark-base border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-emerald-500">
+                    </div>
+
+                    <!-- Length Limit Sliders -->
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs text-slate-300">
+                                <span>Min Length</span>
+                                <span id="lbl-min-len" class="font-mono text-emerald-400">3</span>
+                            </div>
+                            <input type="range" id="range-min-len" min="3" max="16" value="3" oninput="updateRangeLabels()" class="w-full accent-emerald-500 bg-slate-800 h-1.5 rounded-lg cursor-pointer">
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs text-slate-300">
+                                <span>Max Length</span>
+                                <span id="lbl-max-len" class="font-mono text-emerald-400">16</span>
+                            </div>
+                            <input type="range" id="range-max-len" min="3" max="16" value="16" oninput="updateRangeLabels()" class="w-full accent-emerald-500 bg-slate-800 h-1.5 rounded-lg cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Batch Limit Slider -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-slate-300">
+                            <span>Max Names to Check</span>
+                            <span id="lbl-batch-limit" class="font-mono text-emerald-400">25</span>
+                        </div>
+                        <input type="range" id="range-batch-limit" min="5" max="100" step="5" value="25" oninput="updateRangeLabels()" class="w-full accent-emerald-500 bg-slate-800 h-1.5 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Request Delay Slider -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-slate-300">
+                            <span>API Speed / Delay</span>
+                            <span id="lbl-speed-delay" class="font-mono text-purple-400">250ms</span>
+                        </div>
+                        <input type="range" id="range-speed-delay" min="100" max="1500" step="50" value="250" oninput="updateRangeLabels()" class="w-full accent-purple-500 bg-slate-800 h-1.5 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Main Action Buttons -->
+                    <div class="pt-3 space-y-2">
+                        <button id="btn-start-generator" onclick="startBatchChecker()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-rocket"></i>
+                            <span>Generate & Check Availability</span>
+                        </button>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btn-stop-generator" onclick="stopBatchChecker()" disabled class="py-2 px-3 bg-slate-800 text-slate-500 text-xs font-semibold rounded-lg border border-slate-700/50 transition flex items-center justify-center gap-1.5 cursor-not-allowed">
+                                <i class="fa-solid fa-square text-red-400"></i>
+                                <span>Stop Checking</span>
+                            </button>
+                            <button onclick="clearBatchResults()" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-trash-can text-slate-400"></i>
+                                <span>Clear Results</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Results Section -->
+            <section class="lg:col-span-8 space-y-4 flex flex-col">
+                
+                <!-- Progress & Live Stats Monitor Bar -->
+                <div class="cyber-glass p-4 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2 font-mono text-slate-300">
+                            <span id="gen-status-icon"><i class="fa-solid fa-circle-info text-emerald-400"></i></span>
+                            <span id="gen-status-text">Ready. Click "Generate & Check" to start scanning.</span>
+                        </div>
+                        <span id="gen-progress-percent" class="font-mono text-emerald-400 font-bold">0%</span>
+                    </div>
+
+                    <!-- Progress Bar Track -->
+                    <div class="w-full bg-dark-base rounded-full h-2 overflow-hidden border border-slate-800">
+                        <div id="gen-progress-bar" class="bg-gradient-to-r from-emerald-500 to-emerald-300 h-full w-0 transition-all duration-150"></div>
+                    </div>
+
+                    <!-- Quick Stats Counter Badges -->
+                    <div class="grid grid-cols-4 gap-2 pt-1 font-mono text-[11px] text-center">
+                        <div class="bg-dark-base/80 p-2 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 block text-[10px]">TOTAL CHECKED</span>
+                            <span id="stat-checked" class="font-bold text-white text-sm">0</span>
+                        </div>
+                        <div class="bg-emerald-950/40 p-2 rounded-lg border border-emerald-900/50">
+                            <span class="text-emerald-400 block text-[10px]">AVAILABLE</span>
+                            <span id="stat-available" class="font-bold text-emerald-400 text-sm">0</span>
+                        </div>
+                        <div class="bg-red-950/40 p-2 rounded-lg border border-red-900/50">
+                            <span class="text-red-400 block text-[10px]">TAKEN</span>
+                            <span id="stat-taken" class="font-bold text-red-400 text-sm">0</span>
+                        </div>
+                        <div class="bg-purple-950/40 p-2 rounded-lg border border-purple-900/50">
+                            <span class="text-purple-400 block text-[10px]">SPEED</span>
+                            <span id="stat-speed" class="font-bold text-purple-300 text-sm">0/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Filter & Grid Display -->
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                    <div class="flex items-center gap-1">
+                        <button onclick="filterResults('all')" id="filter-btn-all" class="px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            All (<span id="count-filter-all">0</span>)
+                        </button>
+                        <button onclick="filterResults('available')" id="filter-btn-available" class="px-3 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200">
+                            Available (<span id="count-filter-available">0</span>)
+                        </button>
+                        <button onclick="filterResults('taken')" id="filter-btn-taken" class="px-3 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200">
+                            Taken (<span id="count-filter-taken">0</span>)
+                        </button>
+                    </div>
+
+                    <button onclick="exportBatchCSV()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg border border-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-csv text-emerald-400"></i>
+                        <span>Export CSV</span>
+                    </button>
+                </div>
+
+                <!-- Batch Results Cards Container -->
+                <div id="batch-results-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-grow overflow-y-auto max-h-[550px] pr-1">
+                    <div id="batch-empty-state" class="col-span-full flex flex-col items-center justify-center py-16 text-center space-y-3 cyber-glass rounded-2xl border border-dashed border-slate-800">
+                        <div class="w-12 h-12 rounded-full bg-dark-base border border-slate-800 flex items-center justify-center text-slate-600 text-xl">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-slate-300 font-semibold text-sm">No Names Processed Yet</h3>
+                            <p class="text-xs text-slate-500 max-w-xs mt-1">Configure your custom keywords and click "Generate & Check" to run real-time API queries.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ================= TAB 2: SINGLE NAME LOOKUP ================= -->
+        <div id="tab-single" class="max-w-2xl mx-auto space-y-6 hidden">
+            <div class="cyber-glass p-6 rounded-2xl border border-slate-800 space-y-5">
+                <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-800 flex items-center justify-center text-cyan-400 text-lg">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-white">Single Minecraft Username Lookup</h2>
+                        <p class="text-xs text-slate-400">Check availability, UUID, and skin avatar head render instantly</p>
+                    </div>
+                </div>
+
+                <!-- Single Lookup Form -->
+                <div class="flex gap-2">
+                    <div class="relative flex-grow">
+                        <input type="text" id="single-lookup-input" placeholder="Enter username (e.g. Notch, Dream, Technoblade)" 
+                            onkeypress="if(event.key === 'Enter') checkSingleUsername()"
+                            class="w-full bg-dark-base border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-slate-100 focus:outline-none focus:border-cyan-500">
+                    </div>
+                    <button onclick="checkSingleUsername()" class="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-search"></i>
+                        <span>Check Name</span>
+                    </button>
+                </div>
+
+                <!-- Single Result Card Output -->
+                <div id="single-lookup-output" class="hidden space-y-4 pt-2">
+                    <div id="single-status-banner" class="p-4 rounded-xl border flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span id="single-status-icon-badge" class="w-8 h-8 rounded-full flex items-center justify-center text-lg"></span>
+                            <div>
+                                <h3 id="single-username-display" class="font-mono font-bold text-lg text-white">---</h3>
+                                <p id="single-status-subtext" class="text-xs text-slate-400">---</p>
+                            </div>
+                        </div>
+                        <span id="single-status-badge" class="px-3 py-1 rounded-full font-mono text-xs font-bold border">---</span>
+                    </div>
+
+                    <!-- Extra Info Grid (UUID & Skin Head) -->
+                    <div id="single-info-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="cyber-card p-3 rounded-xl border border-slate-800 flex flex-col items-center justify-center text-center">
+                            <span class="text-[10px] text-slate-500 font-mono block mb-1">SKIN RENDER</span>
+                            <img id="single-avatar-img" src="" alt="Skin Helm" class="w-16 h-16 rounded-lg bg-dark-base border border-slate-800 p-1 onerror='this.src="https://placehold.co/100x100/181b24/10b981?text=MC"' />
+                        </div>
+                        <div class="sm:col-span-2 cyber-card p-4 rounded-xl border border-slate-800 flex flex-col justify-between space-y-2">
+                            <div>
+                                <span class="text-[10px] text-slate-500 font-mono block">MOJANG UUID</span>
+                                <span id="single-uuid-display" class="font-mono text-xs text-slate-300 break-all">---</span>
+                            </div>
+                            <div class="flex gap-2 pt-2">
+                                <a id="single-namemc-link" href="#" target="_blank" rel="noopener noreferrer" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-cyan-400"></i>
+                                    <span>View NameMC</span>
+                                </a>
+                                <button id="single-fav-btn" onclick="toggleSingleFavorite()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center justify-center gap-1">
+                                    <i class="fa-regular fa-star"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: SAVED FAVORITES ================= -->
+        <div id="tab-favorites" class="space-y-4 hidden">
+            <div class="cyber-glass p-5 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-950 border border-amber-800 flex items-center justify-center text-amber-400 text-lg">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-white">Saved Favorite Usernames</h2>
+                        <p class="text-xs text-slate-400">Names saved locally in your browser storage</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="copyAllFavorites()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                        <i class="fa-regular fa-copy text-amber-400"></i>
+                        <span>Copy All</span>
+                    </button>
+                    <button onclick="exportFavoritesCSV()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-csv text-emerald-400"></i>
+                        <span>Export CSV</span>
+                    </button>
+                    <button onclick="clearAllFavorites()" class="px-3 py-2 bg-slate-800 hover:bg-red-950 hover:text-red-400 text-slate-400 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Clear All</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Favorites Grid Container -->
+            <div id="favorites-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div id="fav-empty-state" class="col-span-full flex flex-col items-center justify-center py-16 text-center space-y-3 cyber-glass rounded-2xl border border-dashed border-slate-800">
+                    <i class="fa-regular fa-star text-4xl text-slate-700"></i>
+                    <div>
+                        <h3 class="text-slate-300 font-semibold text-sm">No Favorite Names Saved</h3>
+                        <p class="text-xs text-slate-500 max-w-xs mt-1">Click the star icon next to any generated or searched name to bookmark it here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 4: WISP WSS & PR0XY UTILITY ================= -->
+        <div id="tab-pr0xy" class="max-w-3xl mx-auto space-y-6 hidden">
+            
+            <div class="cyber-glass p-6 rounded-2xl border border-slate-800 space-y-6">
+                <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-purple-950 border border-purple-800 flex items-center justify-center text-purple-400 text-lg">
+                        <i class="fa-solid fa-network-wired"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-white">Wisp WSS & Network Bypass Utility</h2>
+                        <p class="text-xs text-slate-400">Bypass restrictive school DNS blocks and browser CORS limitations</p>
+                    </div>
+                </div>
+
+                <!-- CORS Pr0xy Toggle Section -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-4 bg-dark-base rounded-xl border border-slate-800">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-200">Enable CORS Fallback Relay</h3>
+                            <p class="text-[11px] text-slate-400">Routes API queries through public pr0xies when direct fetch is blocked by browser</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="chk-cors-pr0xy" class="sr-only peer" onchange="toggleCorsPr0xySetting()">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+
+                    <div id="cors-url-container" class="space-y-1 hidden">
+                        <label class="text-xs font-medium text-slate-300">CORS Pr0xy Service Prefix</label>
+                        <select id="select-cors-pr0xy-preset" onchange="updateCorsPr0xyInput()" class="w-full bg-dark-base border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200">
+                            <option value="https://api.allorigins.win/raw?url=">api.allorigins.win (Default / Free)</option>
+                            <option value="https://corspr%6fxy.io/?">corspr0xy.io</option>
+                            <option value="custom">Custom CORS Pr0xy URL</option>
+                        </select>
+                        <input type="text" id="input-cors-custom-url" value="https://api.allorigins.win/raw?url=" placeholder="https://your-cors-pr0xy.com/?url=" class="w-full bg-dark-base border border-slate-700 rounded-xl px-3 py-2 font-mono text-xs text-slate-200 mt-1 hidden">
+                    </div>
+                </div>
+
+                <!-- Wisp WebSocket Server Section -->
+                <div class="space-y-3 pt-4 border-t border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                            <span>Wisp WSS Endpoint URL</span>
+                            <span id="wisp-status-badge">
+                                <span class="px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full font-mono text-[10px]">Unchecked</span>
+                            </span>
+                        </label>
+                        <span class="text-[10px] text-purple-400 font-mono">v1.1 Protocol</span>
+                    </div>
+                    
+                    <input type="text" id="wisp-url-input" value="wss://wisp.example.com/" placeholder="wss://your-codespace-8080.app.github.dev/wisp/" 
+                        class="w-full bg-dark-base border border-slate-700 rounded-xl px-4 py-2.5 font-mono text-xs text-slate-200 focus:outline-none focus:border-purple-500">
+
+                    <button onclick="testWispConnection()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-plug"></i>
+                        <span>Test Wisp WebSocket Connection</span>
+                    </button>
+
+                    <!-- WebSocket Handshake Output Log Box -->
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-mono text-slate-400">Handshake Log Output</label>
+                        <pre id="wisp-log-output" class="bg-dark-base p-3 rounded-xl border border-slate-800 font-mono text-[11px] text-slate-300 h-28 overflow-y-auto leading-relaxed">System ready. Click "Test Wisp WebSocket Connection" to perform handshake.</pre>
+                    </div>
+                </div>
+
+                <!-- GitHub Codespaces Hosting Instructions Collapsible -->
+                <div class="pt-4 border-t border-slate-800">
+                    <details class="group">
+                        <summary class="flex items-center justify-between font-semibold text-xs text-slate-300 cursor-pointer p-3 bg-dark-base/60 rounded-xl border border-slate-800 group-open:rounded-b-none">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-brands fa-github text-emerald-400"></i>
+                                <span>How to host your Pr0xy Node server on GitHub Codespaces</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform"></i>
+                        </summary>
+                        <div class="p-4 bg-dark-base rounded-b-xl border border-t-0 border-slate-800 space-y-3 text-xs text-slate-400 leading-relaxed">
+                            <ol class="list-decimal list-inside space-y-2 font-sans">
+                                <li>Create a new public/private repository on <strong class="text-slate-200">GitHub</strong> and launch a free <strong class="text-slate-200">Codespace</strong>.</li>
+                                <li>Create a file <code class="text-emerald-400 font-mono">server.js</code> with Express & Node fetch pr0xy routing.</li>
+                                <li>Run <code class="text-emerald-400 font-mono">npm init -y && npm install express cors node-fetch @mercuryworkshop/wisp-js</code></li>
+                                <li>Start the server with <code class="text-emerald-400 font-mono">node server.js</code> on port 8080.</li>
+                                <li>In Codespaces, navigate to the <strong class="text-slate-200">Ports Tab</strong>, right-click Port 8080, and change Port Visibility from <span class="text-amber-400 font-semibold">Private</span> to <span class="text-emerald-400 font-semibold">Public</span>.</li>
+                                <li>Paste your public Codespace domain URL into the MineSeek Pr0xy settings above!</li>
+                            </ol>
+                        </div>
+                    </details>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Floating Toast Notification System Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // Global Application State Object
+        const state = {
+            activeTab: 'generator',
+            isChecking: false,
+            shouldStop: false,
+            queue: [],
+            batchResults: [], // { username, length, status: 'available'|'taken'|'error', uuid, timestamp }
+            favorites: [],
+            stats: { checked: 0, available: 0, taken: 0, speed: 0 },
+            startTime: null,
+            activeFilter: 'all',
+            useCorsPr0xy: false,
+            corsPr0xyUrl: 'https://api.allorigins.win/raw?url=',
+            singleCurrentResult: null
+        };
+
+        // Character Sets for Pattern Generators
+        const vowels = ['a', 'e', 'i', 'o', 'u'];
+        const consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'z'];
+
+        // DOM Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFavoritesFromStorage();
+            updateRangeLabels();
+            renderFavoritesGrid();
+        });
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            state.activeTab = tabId;
+            ['generator', 'single', 'favorites', 'pr0xy'].forEach(t => {
+                const btn = document.getElementById(`nav-btn-${t}`);
+                const panel = document.getElementById(`tab-${t}`);
+                
+                if (t === tabId) {
+                    btn.className = 'px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 text-emerald-400 bg-dark-card border border-emerald-500/30';
+                    panel.classList.remove('hidden');
+                } else {
+                    btn.className = 'px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200';
+                    panel.classList.add('hidden');
+                }
+            });
+        }
+
+        function updateRangeLabels() {
+            document.getElementById('lbl-min-len').innerText = document.getElementById('range-min-len').value;
+            document.getElementById('lbl-max-len').innerText = document.getElementById('range-max-len').value;
+            document.getElementById('lbl-batch-limit').innerText = document.getElementById('range-batch-limit').value;
+            document.getElementById('lbl-speed-delay').innerText = document.getElementById('range-speed-delay').value + 'ms';
+        }
+
+        function togglePatternFields() {
+            const pattern = document.getElementById('gen-pattern').value;
+            const prefixField = document.getElementById('field-prefixes');
+            const suffixField = document.getElementById('field-suffixes');
+
+            prefixField.classList.add('hidden');
+            suffixField.classList.add('hidden');
+
+            if (pattern === 'keyword-suffix') {
+                suffixField.classList.remove('hidden');
+            } else if (pattern === 'prefix-keyword') {
+                prefixField.classList.remove('hidden');
+            } else if (pattern === 'two-keyword') {
+                // uses keywords only
+            }
+        }
+
+        function generateNameList() {
+            const rawKw = document.getElementById('gen-keywords').value.toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+            const pattern = document.getElementById('gen-pattern').value;
+            const prefixes = document.getElementById('gen-prefixes').value.split(',').map(s => s.trim()).filter(Boolean);
+            const suffixes = document.getElementById('gen-suffixes').value.split(',').map(s => s.trim()).filter(Boolean);
+            
+            const minLen = parseInt(document.getElementById('range-min-len').value);
+            const maxLen = parseInt(document.getElementById('range-max-len').value);
+            const maxCount = parseInt(document.getElementById('range-batch-limit').value);
+
+            let set = new Set();
+
+            if (pattern === 'keyword-suffix') {
+                rawKw.forEach(k => {
+                    suffixes.forEach(s => set.add(`${k}${s}`));
+                });
+            } else if (pattern === 'prefix-keyword') {
+                rawKw.forEach(k => {
+                    prefixes.forEach(p => set.add(`${p}${k}`));
+                });
+            } else if (pattern === 'two-keyword') {
+                rawKw.forEach(k1 => {
+                    rawKw.forEach(k2 => {
+                        if (k1 !== k2) set.add(`${k1}${k2}`);
+                    });
+                });
+            } else if (pattern === '3-letter') {
+                // Generate CVC and VCV 3-letter combinations
+                for (let c1 of consonants) {
+                    for (let v of vowels) {
+                        for (let c2 of consonants) {
+                            set.add(`${c1}${v}${c2}`);
+                            set.add(`${v}${c1}${c2}`);
+                        }
+                    }
+                }
+            } else if (pattern === '4-letter') {
+                // Generate CVCV 4-letter combinations
+                for (let c1 of consonants) {
+                    for (let v1 of vowels) {
+                        for (let c2 of consonants) {
+                            for (let v2 of vowels) {
+                                set.add(`${c1}${v1}${c2}${v2}`);
+                            }
+                        }
+                    }
+                }
+            } else if (pattern === 'custom-list') {
+                rawKw.forEach(k => set.add(k));
+            }
+
+            // Filter names by length and Minecraft alphanumeric format
+            let valid = Array.from(set).filter(name => {
+                if (name.length < minLen || name.length > maxLen) return false;
+                return /^[a-zA-Z0-9_]+$/.test(name);
+            });
+
+            // Shuffle array randomly
+            valid.sort(() => Math.random() - 0.5);
+
+            return valid.slice(0, maxCount);
+        }
+
+        async function checkMinecraftNameAPI(username) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 6000);
+
+            let primaryUrl = `https://playerdb.co/api/player/minecraft/${encodeURIComponent(username)}`;
+            if (state.useCorsPr0xy && state.corsPr0xyUrl) {
+                primaryUrl = `${state.corsPr0xyUrl}${encodeURIComponent(primaryUrl)}`;
+            }
+
+            try {
+                const res = await fetch(primaryUrl, { signal: controller.signal });
+                clearTimeout(timeout);
+
+                if (res.status === 429) {
+                    return { username, status: 'error', message: 'Rate limited (429)' };
+                }
+
+                const data = await res.json();
+
+                // PlayerDB logic
+                if (data.success === true || data.code === 'player.found') {
+                    const uuid = data.data?.player?.id || 'Unknown';
+                    return { username, status: 'taken', uuid };
+                } else if (data.success === false || data.code === 'player.not_found') {
+                    return { username, status: 'available' };
+                }
+            } catch (err) {
+                // Fallback to Ashcon API
+                try {
+                    const fbController = new AbortController();
+                    const fbTimeout = setTimeout(() => fbController.abort(), 5000);
+                    let fbUrl = `https://api.ashcon.app/mojang/v2/user/${encodeURIComponent(username)}`;
+                    if (state.useCorsPr0xy && state.corsPr0xyUrl) {
+                        fbUrl = `${state.corsPr0xyUrl}${encodeURIComponent(fbUrl)}`;
+                    }
+
+                    const fbRes = await fetch(fbUrl, { signal: fbController.signal });
+                    clearTimeout(fbTimeout);
+
+                    if (fbRes.status === 200) {
+                        const fbData = await fbRes.json();
+                        return { username, status: 'taken', uuid: fbData.uuid };
+                    } else if (fbRes.status === 404) {
+                        return { username, status: 'available' };
+                    }
+                } catch (fbErr) {
+                    console.warn("Fallback error:", fbErr);
+                }
+                return { username, status: 'error', message: err.name === 'AbortError' ? 'Timeout' : 'Network Error' };
+            }
+
+            return { username, status: 'available' };
+        }
+
+        async function startBatchChecker() {
+            if (state.isChecking) return;
+
+            const queue = generateNameList();
+            if (queue.length === 0) {
+                showToast("No valid usernames generated based on current rules. Adjust min/max length or keywords.", "error");
+                return;
+            }
+
+            state.queue = queue;
+            state.isChecking = true;
+            state.shouldStop = false;
+            state.startTime = performance.now();
+            
+            // Toggle UI Buttons
+            const btnStart = document.getElementById('btn-start-generator');
+            const btnStop = document.getElementById('btn-stop-generator');
+            
+            btnStart.disabled = true;
+            btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            btnStop.disabled = false;
+            btnStop.classList.remove('cursor-not-allowed', 'text-slate-500');
+            btnStop.classList.add('hover:bg-slate-700', 'text-slate-200');
+
+            document.getElementById('gen-status-icon').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-emerald-400"></i>`;
+
+            const total = queue.length;
+            let processed = 0;
+            const delayMs = parseInt(document.getElementById('range-speed-delay').value) || 250;
+
+            for (let name of queue) {
+                if (state.shouldStop) break;
+
+                document.getElementById('gen-status-text').innerText = `Checking API for: ${name}...`;
+
+                const result = await checkMinecraftNameAPI(name);
+                result.length = name.length;
+                result.timestamp = new Date().toLocaleTimeString();
+
+                state.batchResults.unshift(result);
+                state.stats.checked++;
+
+                if (result.status === 'available') state.stats.available++;
+                if (result.status === 'taken') state.stats.taken++;
+
+                processed++;
+
+                // Update Stats & Progress UI
+                const percent = Math.round((processed / total) * 100);
+                document.getElementById('gen-progress-bar').style.width = `${percent}%`;
+                document.getElementById('gen-progress-percent').innerText = `${percent}%`;
+
+                const elapsedSec = (performance.now() - state.startTime) / 1000;
+                state.stats.speed = (processed / elapsedSec).toFixed(1);
+
+                updateStatsDisplay();
+                renderBatchResultsGrid();
+
+                await new Promise(r => setTimeout(r, delayMs));
+            }
+
+            // Cleanup Execution State
+            state.isChecking = false;
+            btnStart.disabled = false;
+            btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            btnStop.disabled = true;
+            btnStop.classList.add('cursor-not-allowed', 'text-slate-500');
+
+            document.getElementById('gen-status-icon').innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i>`;
+            document.getElementById('gen-status-text').innerText = state.shouldStop ? "Scan halted by user." : "Scan complete!";
+            showToast(state.shouldStop ? "Batch check stopped." : "Batch check finished successfully!", "info");
+        }
+
+        function stopBatchChecker() {
+            state.shouldStop = true;
+            document.getElementById('gen-status-text').innerText = "Stopping queue scan...";
+        }
+
+        function clearBatchResults() {
+            state.batchResults = [];
+            state.stats = { checked: 0, available: 0, taken: 0, speed: 0 };
+            updateStatsDisplay();
+            renderBatchResultsGrid();
+            document.getElementById('gen-progress-bar').style.width = '0%';
+            document.getElementById('gen-progress-percent').innerText = '0%';
+            showToast("Results cleared.", "info");
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('stat-checked').innerText = state.stats.checked;
+            document.getElementById('stat-available').innerText = state.stats.available;
+            document.getElementById('stat-taken').innerText = state.stats.taken;
+            document.getElementById('stat-speed').innerText = `${state.stats.speed}/s`;
+
+            document.getElementById('count-filter-all').innerText = state.batchResults.length;
+            document.getElementById('count-filter-available').innerText = state.batchResults.filter(r => r.status === 'available').length;
+            document.getElementById('count-filter-taken').innerText = state.batchResults.filter(r => r.status === 'taken').length;
+        }
+
+        function filterResults(filter) {
+            state.activeFilter = filter;
+            ['all', 'available', 'taken'].forEach(f => {
+                const btn = document.getElementById(`filter-btn-${f}`);
+                if (f === filter) {
+                    btn.className = 'px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                } else {
+                    btn.className = 'px-3 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200';
+                }
+            });
+            renderBatchResultsGrid();
+        }
+
+        function renderBatchResultsGrid() {
+            const container = document.getElementById('batch-results-grid');
+            const emptyState = document.getElementById('batch-empty-state');
+
+            let filtered = state.batchResults;
+            if (state.activeFilter === 'available') filtered = filtered.filter(r => r.status === 'available');
+            if (state.activeFilter === 'taken') filtered = filtered.filter(r => r.status === 'taken');
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                container.appendChild(emptyState);
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.innerHTML = '';
+
+            filtered.forEach(item => {
+                const isFav = state.favorites.some(f => f.username.toLowerCase() === item.username.toLowerCase());
+                const card = document.createElement('div');
+
+                let badgeHtml = '';
+                let borderGlow = '';
+
+                if (item.status === 'available') {
+                    badgeHtml = `<span class="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-mono font-bold">AVAILABLE</span>`;
+                    borderGlow = 'glow-available';
+                } else if (item.status === 'taken') {
+                    badgeHtml = `<span class="px-2 py-0.5 rounded-full bg-red-950 text-red-400 border border-red-800 text-[10px] font-mono font-bold">TAKEN</span>`;
+                    borderGlow = 'glow-taken';
+                } else {
+                    badgeHtml = `<span class="px-2 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800 text-[10px] font-mono font-bold">ERROR</span>`;
+                }
+
+                card.className = `cyber-card p-3.5 rounded-xl flex items-center justify-between gap-2 ${borderGlow}`;
+                card.innerHTML = `
+                    <div class="space-y-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-sm font-bold text-white truncate">${item.username}</span>
+                            <span class="text-[10px] font-mono px-1.5 py-0.5 bg-dark-base rounded border border-slate-800 text-slate-400">${item.username.length}c</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${badgeHtml}
+                            <span class="text-[10px] text-slate-500 font-mono">${item.timestamp}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        <a href="https://namemc.com/search?q=${encodeURIComponent(item.username)}" target="_blank" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 rounded-lg text-xs border border-slate-700" title="NameMC">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                        <button onclick="copyToClipboard('${item.username}')" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 rounded-lg text-xs border border-slate-700" title="Copy">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <button onclick="toggleFavoriteItem('${item.username}', '${item.status}')" class="p-2 bg-slate-800 hover:bg-slate-700 ${isFav ? 'text-amber-400' : 'text-slate-500'} rounded-lg text-xs border border-slate-700" title="Favorite">
+                            <i class="fa-${isFav ? 'solid' : 'regular'} fa-star"></i>
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        async function checkSingleUsername() {
+            const input = document.getElementById('single-lookup-input');
+            const username = input.value.trim();
+
+            if (!username || username.length < 3 || username.length > 16 || !/^[a-zA-Z0-9_]+$/.test(username)) {
+                showToast("Please enter a valid Minecraft username (3-16 alphanumeric or underscore chars).", "error");
+                return;
+            }
+
+            const output = document.getElementById('single-lookup-output');
+            output.classList.remove('hidden');
+
+            const banner = document.getElementById('single-status-banner');
+            const iconBadge = document.getElementById('single-status-icon-badge');
+            const nameDisplay = document.getElementById('single-username-display');
+            const subtext = document.getElementById('single-status-subtext');
+            const statusBadge = document.getElementById('single-status-badge');
+            const avatarImg = document.getElementById('single-avatar-img');
+            const uuidDisplay = document.getElementById('single-uuid-display');
+            const nameMcLink = document.getElementById('single-namemc-link');
+
+            nameDisplay.innerText = username;
+            subtext.innerText = "Querying Mojang API...";
+            statusBadge.innerText = "SEARCHING";
+            statusBadge.className = "px-3 py-1 rounded-full font-mono text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700";
+
+            const result = await checkMinecraftNameAPI(username);
+            state.singleCurrentResult = result;
+
+            nameMcLink.href = `https://namemc.com/search?q=${encodeURIComponent(username)}`;
+
+            if (result.status === 'available') {
+                banner.className = "p-4 rounded-xl border border-emerald-500/50 bg-emerald-950/30 flex items-center justify-between glow-available";
+                iconBadge.className = "w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg";
+                iconBadge.innerHTML = `<i class="fa-solid fa-check"></i>`;
+                subtext.innerText = "This username is currently AVAILABLE to register!";
+                statusBadge.innerText = "AVAILABLE";
+                statusBadge.className = "px-3 py-1 rounded-full font-mono text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800";
+                
+                avatarImg.src = `https://placehold.co/100x100/181b24/10b981?text=${encodeURIComponent(username.charAt(0))}`;
+                uuidDisplay.innerText = "None (Username Unclaimed)";
+            } else {
+                banner.className = "p-4 rounded-xl border border-red-500/50 bg-red-950/30 flex items-center justify-between glow-taken";
+                iconBadge.className = "w-8 h-8 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center text-lg";
+                iconBadge.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+                subtext.innerText = "This username is already TAKEN by an active Minecraft account.";
+                statusBadge.innerText = "TAKEN";
+                statusBadge.className = "px-3 py-1 rounded-full font-mono text-xs font-bold bg-red-950 text-red-400 border border-red-800";
+
+                avatarImg.src = `https://crafthead.net/helm/${encodeURIComponent(username)}/100`;
+                uuidDisplay.innerText = result.uuid || "Loaded from Mojang Registry";
+            }
+
+            updateSingleFavButton();
+        }
+
+        function toggleSingleFavorite() {
+            if (!state.singleCurrentResult) return;
+            toggleFavoriteItem(state.singleCurrentResult.username, state.singleCurrentResult.status);
+            updateSingleFavButton();
+        }
+
+        function updateSingleFavButton() {
+            if (!state.singleCurrentResult) return;
+            const btn = document.getElementById('single-fav-btn');
+            const isFav = state.favorites.some(f => f.username.toLowerCase() === state.singleCurrentResult.username.toLowerCase());
+            btn.innerHTML = `<i class="fa-${isFav ? 'solid' : 'regular'} fa-star"></i>`;
+        }
+
+        function toggleFavoriteItem(username, status) {
+            const index = state.favorites.findIndex(f => f.username.toLowerCase() === username.toLowerCase());
+            if (index >= 0) {
+                state.favorites.splice(index, 1);
+                showToast(`Removed ${username} from favorites.`, "info");
+            } else {
+                state.favorites.push({ username, status, timestamp: new Date().toLocaleDateString() });
+                showToast(`Added ${username} to favorites!`, "success");
+            }
+            saveFavoritesToStorage();
+            renderFavoritesGrid();
+            renderBatchResultsGrid();
+        }
+
+        function saveFavoritesToStorage() {
+            localStorage.setItem('mineseek_favorites', JSON.stringify(state.favorites));
+            document.getElementById('fav-count-badge').innerText = state.favorites.length;
+        }
+
+        function loadFavoritesFromStorage() {
+            const raw = localStorage.getItem('mineseek_favorites');
+            if (raw) {
+                try {
+                    state.favorites = JSON.parse(raw);
+                } catch (e) {
+                    state.favorites = [];
+                }
+            }
+            document.getElementById('fav-count-badge').innerText = state.favorites.length;
+        }
+
+        function renderFavoritesGrid() {
+            const container = document.getElementById('favorites-grid');
+            const emptyState = document.getElementById('fav-empty-state');
+
+            if (state.favorites.length === 0) {
+                container.innerHTML = '';
+                container.appendChild(emptyState);
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.innerHTML = '';
+
+            state.favorites.forEach(fav => {
+                const card = document.createElement('div');
+                card.className = "cyber-card p-4 rounded-xl flex items-center justify-between border border-slate-800";
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <span class="font-mono font-bold text-white text-sm block">${fav.username}</span>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">${fav.status.toUpperCase()}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="copyToClipboard('${fav.username}')" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs border border-slate-700">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <button onclick="toggleFavoriteItem('${fav.username}', '${fav.status}')" class="p-2 bg-slate-800 hover:bg-red-950 hover:text-red-400 text-slate-400 rounded-lg text-xs border border-slate-700">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function copyAllFavorites() {
+            if (state.favorites.length === 0) return;
+            const text = state.favorites.map(f => f.username).join('\n');
+            copyToClipboard(text);
+        }
+
+        function exportFavoritesCSV() {
+            if (state.favorites.length === 0) return;
+            const csv = "Username,Status,Timestamp\n" + state.favorites.map(f => `${f.username},${f.status},${f.timestamp}`).join('\n');
+            downloadFile(csv, 'favorites.csv', 'text/csv');
+        }
+
+        function clearAllFavorites() {
+            if (state.favorites.length === 0) return;
+            state.favorites = [];
+            saveFavoritesToStorage();
+            renderFavoritesGrid();
+            renderBatchResultsGrid();
+            showToast("Cleared all saved favorites.", "info");
+        }
+
+        function exportBatchCSV() {
+            if (state.batchResults.length === 0) return;
+            const csv = "Username,Length,Status,UUID,Timestamp\n" + state.batchResults.map(r => `${r.username},${r.username.length},${r.status},${r.uuid || ''},${r.timestamp}`).join('\n');
+            downloadFile(csv, 'minecraft_batch_results.csv', 'text/csv');
+        }
+
+        function toggleCorsPr0xySetting() {
+            state.useCorsPr0xy = document.getElementById('chk-cors-pr0xy').checked;
+            const container = document.getElementById('cors-url-container');
+            if (state.useCorsPr0xy) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function updateCorsPr0xyInput() {
+            const preset = document.getElementById('select-cors-pr0xy-preset').value;
+            const customInput = document.getElementById('input-cors-custom-url');
+            if (preset === 'custom') {
+                customInput.classList.remove('hidden');
+                state.corsPr0xyUrl = customInput.value;
+            } else {
+                customInput.classList.add('hidden');
+                state.corsPr0xyUrl = preset;
+            }
+        }
+
+        function testWispConnection() {
+            const wsUrl = document.getElementById('wisp-url-input').value.trim();
+            const logEl = document.getElementById('wisp-log-output');
+            const badge = document.getElementById('wisp-status-badge');
+
+            if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
+                showToast("Invalid WebSocket URL! Must start with ws:// or wss://", "error");
+                return;
+            }
+
+            logEl.innerText = `[${new Date().toLocaleTimeString()}] Initiating WebSocket handshake test to: ${wsUrl}\n`;
+            badge.innerHTML = `<span class="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full font-mono text-[10px]"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Testing...</span>`;
+
+            const startTime = performance.now();
+
+            try {
+                const socket = new WebSocket(wsUrl);
+
+                socket.onopen = () => {
+                    const latency = Math.round(performance.now() - startTime);
+                    logEl.innerText += `[${new Date().toLocaleTimeString()}] WebSocket Open Success! Handshake established successfully.\n`;
+                    logEl.innerText += `[${new Date().toLocaleTimeString()}] Roundtrip Latency: ${latency}ms\n`;
+                    badge.innerHTML = `<span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full font-mono text-[10px]"><i class="fa-solid fa-check mr-1"></i> Connected (${latency}ms)</span>`;
+                    showToast("Wisp WebSocket Handshake Successful!", "success");
+                    socket.close();
+                };
+
+                socket.onerror = (err) => {
+                    logEl.innerText += `[${new Date().toLocaleTimeString()}] WebSocket Connection Error. Server may be offline or blocked.\n`;
+                    badge.innerHTML = `<span class="px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full font-mono text-[10px]"><i class="fa-solid fa-xmark mr-1"></i> Connection Failed</span>`;
+                    showToast("WebSocket Connection Failed", "error");
+                };
+
+                socket.onclose = (evt) => {
+                    logEl.innerText += `[${new Date().toLocaleTimeString()}] Connection closed (code: ${evt.code}).\n`;
+                };
+            } catch (e) {
+                logEl.innerText += `[${new Date().toLocaleTimeString()}] Error: ${e.message}\n`;
+                badge.innerHTML = `<span class="px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full font-mono text-[10px]"><i class="fa-solid fa-xmark mr-1"></i> Failed</span>`;
+            }
+        }
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast("Copied to clipboard!", "success");
+        }
+
+        function downloadFile(content, filename, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let colors = 'bg-slate-900 border-slate-700 text-slate-200';
+            let icon = 'fa-circle-info text-blue-400';
+
+            if (type === 'success') {
+                colors = 'bg-emerald-950/90 border-emerald-800 text-emerald-200';
+                icon = 'fa-circle-check text-emerald-400';
+            } else if (type === 'error') {
+                colors = 'bg-red-950/90 border-red-800 text-red-200';
+                icon = 'fa-circle-xmark text-red-400';
+            }
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl border ${colors} shadow-xl flex items-center gap-3 text-xs font-medium backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i><span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
